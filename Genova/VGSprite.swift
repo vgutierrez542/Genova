@@ -52,8 +52,11 @@ class VGSprite: SKSpriteNode {
            
         }
         
-        super.init(texture: idleRight[0], color: UIColor.clear, size: CGSize(width: positionXYSizeWH[2], height: positionXYSizeWH[3]))
+        super.init(texture: idleRight[0], color: UIColor.clear,
+                   size: CGSize(width: positionXYSizeWH[2], height: positionXYSizeWH[3]))
         self.position = CGPoint(x: positionXYSizeWH[0], y: positionXYSizeWH[1])
+        
+        self.run(SKAction.repeatForever(SKAction.animate(with: idleRight, timePerFrame: 0.12)))
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -63,17 +66,34 @@ class VGSprite: SKSpriteNode {
     /*
      * jump - animates the sprite
      */
-    func jump() -> Bool {
+    func jump() {
+        let jumping = SKAction.moveBy(x: 0, y: frame.size.height, duration: 0.9)
+        let falling = SKAction.moveTo(y: 50, duration: 0.4)
         
-        return false
-    }
-    func walk() -> Bool {
-        if self.facingRight {
-			self.run(SKAction.repeatForever(SKAction.animate(with: walkRight, timePerFrame: 0.05)))
+        if facingRight {
+            self.run(SKAction.animate(with: jumpRight,
+                timePerFrame: 0.09), withKey: "jump")
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {self.run(jumping)})
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(2), execute: {self.run(falling)})
         } else {
-            self.run(SKAction.repeatForever(SKAction.animate(with: walkLeft, timePerFrame: 0.05)))
+            self.run(SKAction.animate(with: jumpLeft,
+                timePerFrame: 0.09), withKey: "jump")
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {self.run(jumping)})
+            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(2), execute: {self.run(falling)})
         }
-        return true
+    }
+    
+    /*
+     * walk - animates the sprite
+     */
+    func walk() {
+        if self.facingRight {
+			self.run(SKAction.repeatForever(SKAction.animate(with: walkRight,
+            	timePerFrame: 0.05)), withKey: "walk")
+        } else {
+            self.run(SKAction.repeatForever(SKAction.animate(with: walkLeft,
+                timePerFrame: 0.05)), withKey: "walk")
+        }
     }
     
     // Turns the sprite to the left
@@ -95,15 +115,15 @@ class VGSprite: SKSpriteNode {
     
     // Stops the animation
     // Always returns false
-    func stop() -> Bool {
-        self.removeAllActions()
+    func stop(){
+        self.removeAction(forKey: "walk")
         if facingRight {
-            self.run(SKAction.repeatForever(SKAction.animate(with: idleRight, timePerFrame: 0.05)))
+            self.run(SKAction.repeatForever(SKAction.animate(with: idleRight,
+                timePerFrame: 0.12)))
         } else {
-            self.run(SKAction.repeatForever(SKAction.animate(with: idleLeft, timePerFrame: 0.05)))
+            self.run(SKAction.repeatForever(SKAction.animate(with: idleLeft, timePerFrame: 0.12)))
         }
         
-        return false;
     }
     
     // Detects if anything has
@@ -191,7 +211,11 @@ class VGSprite: SKSpriteNode {
         for i in 0...(leftJump.getRows()-1) {
             for j in 0...(leftJump.getColumns()-1){
                 jumpLeft.append(leftJump.textureForColumn(column: j, row: i)!)
-            	jumpRight.append(rightJump.textureForColumn(column: j, row: i)!)
+            }
+        }
+        for i in 0...(rightJump.getRows()-1) {
+            for j in (0...(rightJump.getColumns()-1)).reversed() {
+                jumpRight.append(rightJump.textureForColumn(column: j, row: i)!)
             }
         }
     }

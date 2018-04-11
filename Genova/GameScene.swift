@@ -32,8 +32,13 @@ class GameScene: SKScene {
         
         skelSheetL = VGSpriteSheet(frame: SKTexture(imageNamed: "SkeletonWalkLeft"), rows: 1, columns: 13)
         skelSheetR = VGSpriteSheet(frame: SKTexture(imageNamed: "SkeletonWalk"), rows: 1, columns: 13)
-        // set the walking motion
         skeleton.setWalk(leftWalk: skelSheetL, rightWalk: skelSheetR)
+        
+        skelSheetL = VGSpriteSheet(frame: SKTexture(imageNamed: "SkeletonAttackLeft"), rows: 1, columns: 18)
+        skelSheetR = VGSpriteSheet(frame: SKTexture(imageNamed: "SkeletonAttack"), rows: 1, columns: 18)
+        skeleton.setAttack(leftAttack: skelSheetL, rightAtack: skelSheetR)
+        skeleton.setJump(leftJump: skelSheetL, rightJump: skelSheetR)
+        
         addChild(skeleton)
         /*******************************************************************************************************************/
     }
@@ -63,14 +68,29 @@ class GameScene: SKScene {
             
             // animate the skeleton sprite
             skeleton.turnRight()
-            skeleton.walk()
+            
+            // jump if the user press on the upper part of the screen
+            // else walk
+            if location.y > (view?.frame.height)!/2 {
+                skeleton.jump()
+            } else {
+                skeleton.walk()
+            }
+            
         } else {
             // move the ground right
             movingGround.start(isLeft: false)
             
             // animate the skeleton sprite
             skeleton.turnLeft()
-            skeleton.walk()
+            
+            // jump if the user press on the upper part of the screen
+            // else walk
+            if location.y > (view?.frame.height)!/2 {
+                skeleton.jump()
+            } else {
+                skeleton.walk()
+            }
         }
     }
     
@@ -82,7 +102,7 @@ class GameScene: SKScene {
       	// stop the animation of the ground
         movingGround.stop()
         // stop the skeleton animation
-        skeleton.stop()
+        //skeleton.stop()
     }
     
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {
