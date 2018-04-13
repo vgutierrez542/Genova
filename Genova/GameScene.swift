@@ -14,33 +14,46 @@ class GameScene: SKScene {
     
     private var movingGround: VGGround!
     private var skeleton: VGSprite!
-    private var skelSheetR: VGSpriteSheet!
-    private var skelSheetL: VGSpriteSheet!
     
     override func didMove(to view: SKView) {
-        /***********************************INITIALZNG AND ANIMATING THE GROUND**************************************/
+        /********INITIALZNG AND ANIMATING THE GROUND*****************/
         movingGround = VGGround(size: CGSize(width: view.frame.width, height: 30))
         movingGround.position = CGPoint(x: 0, y: 0)
         addChild(movingGround)
-        /************************************************************************************************************/
+        /************************************************************/
         
-        /***********************************INITIALIZING AND ANIMATNG A SKELETON SPRITE************************************/
+        /*********INITIALIZING AND ANIMATNG A SKELETON SPRITE********/
+        createMainChar()
+        /************************************************************/
+    }
+    
+    /*
+     * creatingMainChar() - creates, adds and sets the main character
+     * in this case it is the skeleton
+     */
+    func createMainChar(){
+        var skelSheetR: VGSpriteSheet!
+        var skelSheetL: VGSpriteSheet!
+        
         skelSheetL = VGSpriteSheet(frame: SKTexture(imageNamed: "SkeletonIdleLeft"), rows: 1, columns: 11)
         skelSheetR = VGSpriteSheet(frame: SKTexture(imageNamed: "SkeletonIdle"), rows: 1, columns: 11)
-        skeleton = VGSprite(positionXYSizeWH: [Int(view.frame.width)/2, 48, 40, 80],
+        skeleton = VGSprite(positionXYSizeWH: [Int((view?.frame.width)!)/2, 48, 35, 70],
                             idleLR: [skelSheetL, skelSheetR], facingRight: true)
         
+        // size -> 286*33
         skelSheetL = VGSpriteSheet(frame: SKTexture(imageNamed: "SkeletonWalkLeft"), rows: 1, columns: 13)
         skelSheetR = VGSpriteSheet(frame: SKTexture(imageNamed: "SkeletonWalk"), rows: 1, columns: 13)
-        skeleton.setWalk(leftWalk: skelSheetL, rightWalk: skelSheetR)
+        skeleton.setWalk(leftWalk: skelSheetL, rightWalk: skelSheetR, row: 0)
         
+        // size -> 774*37
+        // width: (defSize.width * 1.955)
+        // height: (defSize.height * 1.12)
         skelSheetL = VGSpriteSheet(frame: SKTexture(imageNamed: "SkeletonAttackLeft"), rows: 1, columns: 18)
         skelSheetR = VGSpriteSheet(frame: SKTexture(imageNamed: "SkeletonAttack"), rows: 1, columns: 18)
-        skeleton.setAttack(leftAttack: skelSheetL, rightAtack: skelSheetR)
-        skeleton.setJump(leftJump: skelSheetL, rightJump: skelSheetR)
+        skeleton.setAttack(leftAttack: skelSheetL, rightAttack: skelSheetR, row: 0)
+        skeleton.setJump(leftJump: skelSheetL, rightJump: skelSheetR, row: 0)
         
         addChild(skeleton)
-        /*******************************************************************************************************************/
     }
     
     func touchDown(atPoint pos : CGPoint) {
@@ -72,7 +85,12 @@ class GameScene: SKScene {
             // jump if the user press on the upper part of the screen
             // else walk
             if location.y > (view?.frame.height)!/2 {
+                skeleton.setSize(size: CGSize(width: 60.0, height: 80.0))
+                self.isUserInteractionEnabled = false
                 skeleton.jump()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.17, execute: {
+                    self.isUserInteractionEnabled = true
+                })
             } else {
                 skeleton.walk()
             }
@@ -87,7 +105,12 @@ class GameScene: SKScene {
             // jump if the user press on the upper part of the screen
             // else walk
             if location.y > (view?.frame.height)!/2 {
+                skeleton.setSize(size: CGSize(width: 60.0, height: 80.0))
+                self.isUserInteractionEnabled = false
                 skeleton.jump()
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.17, execute: {
+                    self.isUserInteractionEnabled = true
+                })
             } else {
                 skeleton.walk()
             }
@@ -102,7 +125,7 @@ class GameScene: SKScene {
       	// stop the animation of the ground
         movingGround.stop()
         // stop the skeleton animation
-        //skeleton.stop()
+        skeleton.stop()
     }
     
     override func touchesCancelled(_ touches: Set<UITouch>, with event: UIEvent?) {

@@ -32,6 +32,9 @@ class VGSprite: SKSpriteNode {
     private var jumpRight = [SKTexture]()
     private var jumpLeft = [SKTexture]()
     private var facingRight = true
+    private var isOnGround = true
+    private var defSize = CGSize()
+
     
     /*
      * initializes the sprites
@@ -44,19 +47,23 @@ class VGSprite: SKSpriteNode {
     	
         self.facingRight = facingRight
         
-        for i in 0...(idleLR[0].getRows()-1) {
-            for j in 0...(idleLR[0].getColumns()-1){
-                idleLeft.append(idleLR[0].textureForColumn(column: j, row: i)!)
-                idleRight.append(idleLR[1].textureForColumn(column: j, row: i)!)
-            }
-           
+        for i in 0...(idleLR[1].getColumns()-1) {
+            idleRight.append(idleLR[1].textureForColumn(column: i, row: 0)!)
+        }
+        for i in (0...(idleLR[0].getColumns()-1)).reversed() {
+            idleLeft.append(idleLR[0].textureForColumn(column: i, row: 0)!)
         }
         
         super.init(texture: idleRight[0], color: UIColor.clear,
-                   size: CGSize(width: positionXYSizeWH[2], height: positionXYSizeWH[3]))
-        self.position = CGPoint(x: positionXYSizeWH[0], y: positionXYSizeWH[1])
+            size: CGSize(width: positionXYSizeWH[2], height:
+                positionXYSizeWH[3]))
+        self.position = CGPoint(x: positionXYSizeWH[0], y:
+            positionXYSizeWH[1])
+        self.defSize = self.size
         
-        self.run(SKAction.repeatForever(SKAction.animate(with: idleRight, timePerFrame: 0.12)))
+        self.run(SKAction.repeatForever(SKAction.animate(with: idleRight,
+            timePerFrame: 0.12)))
+        
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -64,23 +71,49 @@ class VGSprite: SKSpriteNode {
     }
     
     /*
+     * setSize() - sets the size of sprite
+     */
+    func setSize(size: CGSize) {
+        self.size = size
+    }
+    
+    /*
      * jump - animates the sprite
      */
     func jump() {
-        let jumping = SKAction.moveBy(x: 0, y: frame.size.height, duration: 0.9)
-        let falling = SKAction.moveTo(y: 50, duration: 0.4)
+        let jumping = SKAction.moveBy(x: 0, y: frame.size.height, duration: 0.3)
+        let falling = SKAction.moveTo(y: 48, duration: 0.3)
+        let defPosition = self.position
+        self.isOnGround = false
         
         if facingRight {
             self.run(SKAction.animate(with: jumpRight,
-                timePerFrame: 0.09), withKey: "jump")
-            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {self.run(jumping)})
-            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(2), execute: {self.run(falling)})
+                timePerFrame: 0.07), withKey: "jump")
+            self.position = CGPoint(x: self.position.x + 8, y: self.position.y + 5)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                self.run(jumping)
+            })
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.9, execute: {
+                self.run(falling)
+            })
         } else {
             self.run(SKAction.animate(with: jumpLeft,
-                timePerFrame: 0.09), withKey: "jump")
-            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(1), execute: {self.run(jumping)})
-            DispatchQueue.main.asyncAfter(deadline: .now() + .seconds(2), execute: {self.run(falling)})
+                timePerFrame: 0.07), withKey: "jump")
+            self.position = CGPoint(x: self.position.x - 8, y: self.position.y + 5)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                self.run(jumping)
+            })
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.9, execute: {
+                self.run(falling)
+            })
         }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.15, execute:
+        {
+            self.setSize(size: self.defSize)
+            self.isOnGround = true
+            self.stop()
+            self.position = defPosition
+        })
     }
     
     /*
@@ -117,13 +150,16 @@ class VGSprite: SKSpriteNode {
     // Always returns false
     func stop(){
         self.removeAction(forKey: "walk")
-        if facingRight {
-            self.run(SKAction.repeatForever(SKAction.animate(with: idleRight,
-                timePerFrame: 0.12)))
-        } else {
-            self.run(SKAction.repeatForever(SKAction.animate(with: idleLeft, timePerFrame: 0.12)))
-        }
         
+        if self.isOnGround{
+       	 	if facingRight {
+        	    self.run(SKAction.repeatForever(SKAction.animate(with:
+                    idleRight,timePerFrame: 0.12)))
+       	 	} else {
+            	self.run(SKAction.repeatForever(SKAction.animate(with: idleLeft,
+                    timePerFrame: 0.12)))
+        	}
+        }
     }
     
     // Detects if anything has
@@ -135,88 +171,84 @@ class VGSprite: SKSpriteNode {
     /*
      * setWalk - sets the walking arrays
      */
-    func setWalk(leftWalk: VGSpriteSheet, rightWalk: VGSpriteSheet) {
-        for i in 0...(leftWalk.getRows()-1) {
-            for j in 0...(leftWalk.getColumns()-1){
-				walkLeft.append(leftWalk.textureForColumn(column: j, row: i)!)
-                walkRight.append(rightWalk.textureForColumn(column: j, row: i)!)
-            }
+    func setWalk(leftWalk: VGSpriteSheet, rightWalk: VGSpriteSheet, row: Int) {
+        for i in (0...(leftWalk.getColumns()-1)).reversed() {
+            walkLeft.append(leftWalk.textureForColumn(column: i, row: row)!)
+        }
+        for i in 0...(rightWalk.getColumns()-1) {
+            walkRight.append(rightWalk.textureForColumn(column: i, row: row)!)
         }
     }
     
     /*
      * setAttack - sets the attack arrays
      */
-    func setAttack(leftAttack: VGSpriteSheet, rightAtack: VGSpriteSheet) {
-        for i in 0...(leftAttack.getRows()-1) {
-            for j in 0...(leftAttack.getColumns()-1) {
-                attackLeft.append(leftAttack.textureForColumn(column: j, row: i)!)
-                attackRight.append(rightAtack.textureForColumn(column: j, row: i)!)
-            }
+    func setAttack(leftAttack: VGSpriteSheet, rightAttack: VGSpriteSheet, row: Int) {
+        for i in 0...(rightAttack.getColumns()-1) {
+            attackRight.append(rightAttack.textureForColumn(column: i, row: row)!)
+        }
+        for i in (0...(leftAttack.getColumns()-1)).reversed() {
+            attackLeft.append(leftAttack.textureForColumn(column: i, row: row)!)
         }
     }
     
     /*
      * setIdle - sets the iddle arrays
      */
-    func setIdle(leftIdle: VGSpriteSheet, rightIdle: VGSpriteSheet){
-        for i in 0...(leftIdle.getRows()-1) {
-            for j in 0...(leftIdle.getColumns()-1){
-                idleLeft.append(leftIdle.textureForColumn(column: j, row: i)!)
-                idleRight.append(rightIdle.textureForColumn(column: j, row: i)!)
-            }
+    func setIdle(leftIdle: VGSpriteSheet, rightIdle: VGSpriteSheet, row: Int){
+        for i in 0...(rightIdle.getColumns()-1) {
+            idleRight.append(rightIdle.textureForColumn(column: i, row: row)!)
+        }
+        for i in (0...(leftIdle.getColumns()-1)).reversed() {
+            idleLeft.append(leftIdle.textureForColumn(column: i, row: row)!)
         }
     }
     
     /*
      * setReact - sets the reaction arrays
      */
-    func setReact(leftReact:VGSpriteSheet, rightReact: VGSpriteSheet) {
-        for i in 0...(leftReact.getRows()-1) {
-            for j in 0...(leftReact.getColumns()-1){
-                reactLeft.append(leftReact.textureForColumn(column: j, row: i)!)
-                reactRight.append(rightReact.textureForColumn(column: j, row: i)!)
-            }
+    func setReact(leftReact:VGSpriteSheet, rightReact: VGSpriteSheet, row: Int) {
+        for i in 0...(rightReact.getColumns()-1) {
+            reactRight.append(rightReact.textureForColumn(column: i, row: row)!)
+        }
+        for i in (0...(leftReact.getColumns()-1)).reversed() {
+            reactLeft.append(leftReact.textureForColumn(column: i, row: row)!)
         }
     }
     
     /*
      * setDead - sets the dead arrays
      */
-    func setDead(leftDead: VGSpriteSheet, rightDead: VGSpriteSheet) {
-        for i in 0...(leftDead.getRows()-1) {
-            for j in 0...(leftDead.getColumns()-1){
-                deadLeft.append(leftDead.textureForColumn(column: j, row: i)!)
-                deadRight.append(rightDead.textureForColumn(column: j, row: i)!)
-            }
+    func setDead(leftDead: VGSpriteSheet, rightDead: VGSpriteSheet, row: Int) {
+        for i in 0...(rightDead.getColumns()-1) {
+            deadRight.append(rightDead.textureForColumn(column: i, row: row)!)
+        }
+        for i in (0...(leftDead.getColumns()-1)).reversed() {
+            deadLeft.append(leftDead.textureForColumn(column: i, row: row)!)
         }
     }
     
     /*
      * setHit - sets the hit arrays
      */
-    func setHit(leftHit: VGSpriteSheet, rightHit: VGSpriteSheet){
-        for i in 0...(leftHit.getRows()-1)  {
-            for j in 0...(leftHit.getColumns()-1){
-                hitLeft.append(leftHit.textureForColumn(column: j, row: i)!)
-                hitRight.append(rightHit.textureForColumn(column: j, row: i)!)
-            }
+    func setHit(leftHit: VGSpriteSheet, rightHit: VGSpriteSheet, row: Int){
+        for i in 0...(rightHit.getColumns()-1) {
+            hitRight.append(rightHit.textureForColumn(column: i, row: row)!)
+        }
+        for i in (0...(leftHit.getColumns()-1)).reversed() {
+            hitLeft.append(leftHit.textureForColumn(column: i, row: row)!)
         }
     }
     
     /*
      * setJump - sets the jumping array
      */
-    func setJump(leftJump: VGSpriteSheet, rightJump: VGSpriteSheet) {
-        for i in 0...(leftJump.getRows()-1) {
-            for j in 0...(leftJump.getColumns()-1){
-                jumpLeft.append(leftJump.textureForColumn(column: j, row: i)!)
-            }
+    func setJump(leftJump: VGSpriteSheet, rightJump: VGSpriteSheet, row: Int) {
+        for i in (0...(rightJump.getColumns()-1)).reversed() {
+            jumpRight.append(rightJump.textureForColumn(column: i, row: row)!)
         }
-        for i in 0...(rightJump.getRows()-1) {
-            for j in (0...(rightJump.getColumns()-1)).reversed() {
-                jumpRight.append(rightJump.textureForColumn(column: j, row: i)!)
-            }
+        for i in 0...(leftJump.getColumns()-1) {
+            jumpLeft.append(leftJump.textureForColumn(column: i, row: row)!)
         }
     }
 }
