@@ -76,8 +76,6 @@ class GameScene: SKScene {
         // Checks which location of the sprite is pressed
         // The ground and the sprite move in oppisite directions
         if location.x > (view?.frame.width)!/2 {
-            // move the ground to the left
-            movingGround.start(isLeft:true)
             
             // animate the skeleton sprite
             skeleton.turnRight()
@@ -88,16 +86,19 @@ class GameScene: SKScene {
                 skeleton.setSize(size: CGSize(width: 60.0, height: 80.0))
                 self.isUserInteractionEnabled = false
                 skeleton.jump()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.17, execute: {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                    self.movingGround.jump(isLeft: true)
+                })
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.12, execute: {
                     self.isUserInteractionEnabled = true
                 })
             } else {
+                // move the ground to the left
+                movingGround.start(isLeft:true)
                 skeleton.walk()
             }
             
         } else {
-            // move the ground right
-            movingGround.start(isLeft: false)
             
             // animate the skeleton sprite
             skeleton.turnLeft()
@@ -108,10 +109,15 @@ class GameScene: SKScene {
                 skeleton.setSize(size: CGSize(width: 60.0, height: 80.0))
                 self.isUserInteractionEnabled = false
                 skeleton.jump()
-                DispatchQueue.main.asyncAfter(deadline: .now() + 1.17, execute: {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                    self.movingGround.jump(isLeft: false)
+                })
+                DispatchQueue.main.asyncAfter(deadline: .now() + 1.12, execute: {
                     self.isUserInteractionEnabled = true
                 })
             } else {
+                // move the ground right
+                movingGround.start(isLeft: false)
                 skeleton.walk()
             }
         }
@@ -123,7 +129,7 @@ class GameScene: SKScene {
     
     override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
       	// stop the animation of the ground
-        movingGround.stop()
+        movingGround.stop(key:"moveGround")
         // stop the skeleton animation
         skeleton.stop()
     }

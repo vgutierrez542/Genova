@@ -109,7 +109,7 @@ class VGSprite: SKSpriteNode {
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.15, execute:
         {
-            self.setSize(size: self.defSize)
+            self.size = self.defSize
             self.isOnGround = true
             self.stop()
             self.position = defPosition

@@ -64,9 +64,27 @@ class VGGround: SKSpriteNode {
         //run(SKAction.repeatForever(moveSequence), withKey: "moveGround")
     }
     
-    func stop(){
+    /*
+     *
+     */
+    func jump(isLeft: Bool) {
+        let moveLeft = SKAction.moveBy(x: -frame.size.width/90, y: 0, duration: 0.65)
+        let moveRight = SKAction.moveBy(x: frame.size.width/90, y: 0, duration: 0.65)
+        let key = "jumpGround"
+        
+        if isLeft == false {
+            run(moveRight, withKey: key)
+        } else {
+            run(moveLeft, withKey: key)
+        }
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2, execute: {
+            self.stop(key: key)
+            })
+    }
+    
+    func stop(key: String){
         //stops the moving ground action
-        removeAction(forKey: "moveGround")
+        removeAction(forKey: key)
         //sets the floor back before stoping the moveGround action
         //run(SKAction.moveTo(x: 0, duration: 0))
     }
